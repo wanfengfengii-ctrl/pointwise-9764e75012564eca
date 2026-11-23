@@ -1,17 +1,21 @@
 from ledger import text_id, transaction
 from publication.envelope import delivery_number, freeze_envelope
 from publication.register import find_issuance, store_issuance
-from source.revisions import get_formal_batch
+from source.revisions import get_formal_batch, read_formal_history
 
 
-def build_change_document(_connection, formal_batch):
+def build_change_document(connection, formal_batch):
+    facts = {}
+    earlier = read_formal_history(connection, formal_batch['stream'],
+                                  through=formal_batch['sequence'] - 1)
+    for batch in earlier:
+        for revision in batch['changes']:
+            fact = revision['after']
+            facts[tuple(fact['key'])] = fact
     changes = []
     for change in formal_batch['changes']:
-        reading = change['before']
-        changes.append({
-            'before': {'litres': reading['litres'], 'missing': reading['missing']},
-            'after': change['after'],
-        })
+        after = change['after']
+        changes.append({'before': facts[tuple(after['key'])], 'after': after})
     return {'batch': formal_batch['batch'], 'sequence': formal_batch['sequence'], 'changes': changes}
 
 

@@ -51,6 +51,24 @@ class TransportTests(ProjectCase):
             receive(target, MIRROR, unbound.to_bytes())
         self.assertEqual(list_pending(target, MIRROR), [])
 
+    def test_resealed_before_image_tampering(self):
+        material = self.make_material()
+        target = self.mirror()
+        self.install_start(target, material)
+        original = decode_envelope(material['T3']['envelope'])
+        doc = json.loads(original.body)
+        self.assertEqual(doc['changes'][0]['before']['batch'], 'T1')
+        doc['changes'][0]['before'] = doc['changes'][0]['after']
+        resealed = freeze_envelope(original.kind, original.stream, original.delivery_id, doc)
+        with self.assertRaisesRegex(ValueError, 'before image'):
+            receive(target, MIRROR, resealed.to_bytes())
+        doc = json.loads(original.body)
+        doc['changes'][0]['before']['order'] += 1
+        resealed = freeze_envelope(original.kind, original.stream, original.delivery_id, doc)
+        with self.assertRaisesRegex(ValueError, 'before image'):
+            receive(target, MIRROR, resealed.to_bytes())
+        self.assertEqual(list_pending(target, MIRROR), [])
+
     def test_conflicting_redelivery(self):
         material = self.make_material()
         target = self.mirror()

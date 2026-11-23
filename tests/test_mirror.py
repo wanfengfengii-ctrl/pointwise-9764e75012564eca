@@ -1,10 +1,11 @@
 import sqlite3
 
 from audit.history import receipt
+from demo import issue_sample, load_sample
 from mirror.posting import post
 from publication.envelope import decode_envelope
 from receiving.pending import list_pending
-from tests.support import MIRROR, ProjectCase, install_post_failure
+from tests.support import DAY, MIRROR, STATION, ProjectCase, install_post_failure, measurement
 
 
 class MirrorTests(ProjectCase):
@@ -35,6 +36,33 @@ class MirrorTests(ProjectCase):
         self.assertEqual(list_pending(target, MIRROR), [accepted])
         with self.assertRaises(LookupError):
             receipt(target, MIRROR, self.delivery_number(material, 'T3'))
+
+    def test_same_reading_same_origin_predecessor(self):
+        sample = load_sample('corrections.json')
+        sample['amendments'][0]['updates'] = [
+            {'key': [STATION, DAY, 'A'], 'after': measurement(7, 'A初测')}
+        ]
+        source = self.source()
+        material = issue_sample(source, sample)
+        source.close()
+        target = self.mirror()
+        self.install_start(target, material)
+        self.assertEqual(self.deliver(target, material, 'T2')['status'], 'posted')
+        accepted = self.receive_batch(target, material, 'T3')
+        outcome = post(target, MIRROR, accepted['intake_id'])
+        self.assertEqual((outcome['status'], outcome['receipt']), ('pending', None))
+        self.assertEqual(outcome['waiting_for'], [{'key': [STATION, DAY, 'A']}])
+        self.assert_book(target, [7, 8], ['A初测', 'B复测'], 15)
+        self.assertEqual(list_pending(target, MIRROR), [accepted])
+        with self.assertRaises(LookupError):
+            receipt(target, MIRROR, self.delivery_number(material, 'T3'))
+        first = self.deliver(target, material, 'T1')['receipt']
+        self.assertEqual(first['sources'][0]['origin'], 'A初测')
+        resumed = post(target, MIRROR, accepted['intake_id'])
+        self.assertEqual(resumed['status'], 'posted')
+        self.assert_book(target, [13, 9], ['A联核', 'B联核'], 22)
+        self.assertEqual(list_pending(target, MIRROR), [])
+        self.assertEqual(receipt(target, MIRROR, first['delivery_id']), first)
 
     def test_unrelated_history(self):
         material = self.make_material(unrelated=True)

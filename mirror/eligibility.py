@@ -18,8 +18,6 @@ def check_eligibility(connection, mirror, document):
             raise ValueError('the mirror start does not supply the required original fact')
         if current['sequence'] >= document['sequence']:
             raise ValueError('the correction precedes the current fact')
-        reading = current['reading']
-        before = change['before']
-        if (reading['litres'], reading['missing']) != (before['litres'], before['missing']):
+        if current != change['before']:
             waiting_for.append({'key': list(key)})
     return waiting_for

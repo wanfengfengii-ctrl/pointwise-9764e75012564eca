@@ -2,7 +2,7 @@ import json
 
 from ledger import canonical_json, positive_index, require_fields, require_items, text_id
 from publication.envelope import decode_envelope, delivery_number
-from source.observations import validate_fact, validate_measurement
+from source.observations import validate_fact
 
 
 def _validate_unique(facts):
@@ -32,11 +32,14 @@ def _validate_changes(rows, batch, sequence):
     facts = []
     for change in require_items(rows, 'change rows'):
         require_fields(change, ('before', 'after'), 'transport correction')
-        before = require_fields(change['before'], ('litres', 'missing'), 'transport before measure')
-        validate_measurement(before['litres'], before['missing'])
+        before = validate_fact(change['before'])
         fact = validate_fact(change['after'])
         if fact['batch'] != batch or fact['sequence'] != sequence:
             raise ValueError('after image does not belong to the stated formal batch')
+        if before['key'] != fact['key'] or before['order'] != fact['order']:
+            raise ValueError('before image does not match the corrected fact')
+        if before['sequence'] >= sequence:
+            raise ValueError('before image is outside the stated formal history')
         facts.append(fact)
     _validate_unique(facts)
 
