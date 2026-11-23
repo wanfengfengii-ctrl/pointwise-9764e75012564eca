@@ -1,0 +1,12 @@
+{
+  "stream": "澄河-日流",
+  "station": "南闸",
+  "day": "2025-05-16",
+  "start_batch": "S",
+  "rows": [
+    {"key": ["南闸", "2025-05-16", "Z"], "reading": {"litres": 7, "missing": false, "origin": "晨班尺"}},
+    {"key": ["南闸", "2025-05-16", "A"], "reading": {"litres": 0, "missing": false, "origin": "零量仪"}},
+    {"key": ["南闸", "2025-05-16", "M"], "reading": {"litres": null, "missing": true, "origin": "未到表"}}
+  ],
+  "amendments": []
+}

@@ -1,0 +1,19 @@
+{
+  "stream": "澄河-日流",
+  "station": "南闸",
+  "day": "2025-05-16",
+  "start_batch": "S",
+  "rows": [
+    {"key": ["南闸", "2025-05-16", "A"], "reading": {"litres": 7, "missing": false, "origin": "A初测"}},
+    {"key": ["南闸", "2025-05-16", "B"], "reading": {"litres": 5, "missing": false, "origin": "B初测"}},
+    {"key": ["南闸", "2025-05-17", "C"], "reading": {"litres": 4, "missing": false, "origin": "C初测"}}
+  ],
+  "amendments": [
+    {"batch": "T1", "updates": [{"key": ["南闸", "2025-05-16", "A"], "after": {"litres": 7, "missing": false, "origin": "A复测"}}]},
+    {"batch": "T2", "updates": [{"key": ["南闸", "2025-05-16", "B"], "after": {"litres": 8, "missing": false, "origin": "B复测"}}]},
+    {"batch": "T3", "updates": [
+      {"key": ["南闸", "2025-05-16", "A"], "after": {"litres": 13, "missing": false, "origin": "A联核"}},
+      {"key": ["南闸", "2025-05-16", "B"], "after": {"litres": 9, "missing": false, "origin": "B联核"}}
+    ]}
+  ]
+}
